@@ -1,0 +1,78 @@
+---
+title: "11.5"
+format: html
+---
+
+# t-test & chi-test
+- specifically state null hypothesis & alternative hypothesis
+- visual to show (bar chart)
+- choose chi-test OR t-test
+- non-statistical language for conclusion
+
+
+## hw notes
+- null & alternative hypothesis
+- visual
+- have t-test & change confidence variable to 90% (not the normal 95%)
+- conclusion in non-statistical language
+
+
+## example
+a college said that their intro to stats students are:
+
+- 50% freshmen
+- 30% sophomores
+- 10% juniors
+- 10% seniors
+
+
+t-test won't work for this information cause it's not quantitative (20 freshmen v 50% freshmen)
+
+- Null Hypothesis: $H_0:$ proportions are correct
+- Alternative: $H_a:$ proportions are incorrect (not specific about what's incorrect)
+
+`observed`: in a random sample of n=65 students
+
+- 28 freshmen
+- 24 sophomores
+- 9 juniors
+- 4 seniors
+
+since it's a *random* sample, we know that 4 seniors aren't 10% (6.2%) so we compare the values we got to what we expect
+
+`expected`: for the same sample sizze of n=65 students (%*n)
+
+- 32.5 freshmen
+- 19.5 sophomores
+- 6.5 juniors
+- 6.5 seniors
+
+to compare these, we need to take into account all the differences for each age group (fresh: 32.5 v 28).
+we compute a $x^2 test$ statistic (chi-sqrd/sounds like kai-sqrd). this has a chi distribution with k-1 degrees of freedom (k = number of categories)
+
+
+$x = \Sigma (O-E)^2/E$
+
+- O -> observed
+- E -> expected
+
+```{r}
+#goodness-of-fit
+Obs <- c(28,24,9,4) #observed number of students per grade
+p_null <- c(.5,.3,.1,.1) #percent expected for each grade
+
+chisq.test(Obs, p=p_null) #similar to t.test
+```
+$x^2$: 3.5846
+
+degree of freedom: 3
+
+p-value: 0.31
+
+lower p-values is stronger evidence **against** the null hypothesis so 0.31 is big
+
+if $H_0$ is true, data like this occurs 31% of the time
+
+insufficient evidence to reject the null hypothesis/this data is consistent with $H_0$. not suprised by this
+
+**DO NOT SAY**: 'therefore, the null hypothesis is true'

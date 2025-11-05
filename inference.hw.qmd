@@ -1,0 +1,74 @@
+---
+title: "inference.hw"
+author: Karli Balzanto
+format: html
+embed-resources: true
+---
+
+## problem 1
+explicit hypotheses
+- Null Hypothesis: $\mu = 110$
+- Alternative: $\mu \ne 110$ ($H_a: \mu \ne 110$)
+
+conclusion
+- the p-value of 0.000001429 means that data like ours (a sample mean this far from 110) would only occur about 0.00014% of the time if the true average price really were $110.
+- The null hypothesis doesn’t seem compatible with our data. We have strong evidence against the null hypothesis, so we reject it and conclude that the alternative is true. 
+```{r}
+#look at info
+summary(ISLR2::Carseats$Price)
+t.test(ISLR2::Carseats$Price,
+       mu = 110)
+
+#visual
+library(ISLR2)
+library(ggplot2)
+
+ggplot(Carseats,
+       aes(x = Price)) +
+  geom_histogram(binwidth = 5, 
+                 fill = "skyblue", 
+                 color = "white", 
+                 alpha = 0.8) +
+  geom_vline(xintercept = 110, 
+             color = "pink", 
+             size = 1.2) +
+  geom_vline(xintercept = mean(Carseats$Price), 
+             color = "lightgreen", 
+             size = 1.2) +
+  labs(title = "Distribution of Car Seat Prices",
+       subtitle = "Red = Claimed | Green = Sample",
+       x = "Price ($)",
+       y = "Count") +
+  theme_minimal()
+
+```
+
+
+## problem 2
+```{r}
+xbar <- mean(Carseats$CompPrice)
+s <- sd(Carseats$CompPrice)
+n <- nrow(Carseats)
+tstar <- qt(0.95, df = n-1)
+
+margin <- tstar * s / sqrt(n)
+ci <- c(xbar - margin, xbar + margin)
+
+xbar      # sample mean: 124.975
+margin    # margin error: 1.264086
+ci        # 90%: 123.7109  126.2391
+
+```
+
+
+## problem 3
+```{r}
+penguins <- addmargins(table(penguins$species,
+                             penguins$island))
+penguins
+```
+
+
+## problem 4
+
+can't post/push because github not working
