@@ -71,4 +71,5 @@ penguins
 
 ## problem 4
 
-can't post/push because github not working
+couldn't push before due date so went to office hours and fixed. added [link](https://github.com/karb-05/MATH250_github_sandbox) after.
+
