@@ -1,6 +1,8 @@
 ---
 title: "11.5"
+author: Karli Balzanto
 format: html
+embed-resources: true
 ---
 
 # t-test & chi-test

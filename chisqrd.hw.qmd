@@ -1,0 +1,109 @@
+---
+title: "chisqrd.hw"
+author: Karli Balzanto
+format: html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(readr)
+attrition <- read_csv("attrition_small.csv")
+#View(attrition)
+```
+
+## problem 1
+The company claims that 10% of employees report their work/life balance as “best,” 65% report it as “better,” 20% as “good,” and only 5% as “bad.” Is this claim reasonable in light of the sample data?
+
+
+##### Hypothesis
+
+- $H_0:$ The proportions of employees reporting work/life balance are the following: 10% best, 65% better, 20% good, & 5% bad.
+
+- $H_a:$ The proportions are not consistent with the company's claims.
+
+
+##### Visualization
+```{r}
+ggplot(attrition,
+       aes(x = WorkLifeBalance,
+           fill = WorkLifeBalance)) +
+  geom_bar(show.legend = FALSE) +
+  labs(title = "Distribution of Work/Life Balance Ratings",
+       x = "Work/Life Balance",
+       y = "Count") +
+  scale_fill_brewer(palette = "Dark2") + 
+  theme_minimal()
+```
+
+
+##### Run Chi-Sqrd Test
+```{r}
+obs_wlb <- table(attrition$WorkLifeBalance)
+p_null_wlb <- c(0.05, 0.10, 0.65, 0.20)
+chisq.test(obs_wlb, p = p_null_wlb)
+```
+
+
+##### Interpretations
+
+technical:
+
+- Because the p-value (0.5753) is much greater than the usual significance level, fail to reject the null hypothesis. There is no statistically significant evidence that the observed distribution of work/life balance ratings differs from the company’s claimed proportions.
+
+non-statistical:
+
+- The sample results are consistent with the company’s claim about work/life balance. The differences between what the company said and what was observed are small enough that they could easily happen just by chance. In everyday terms: the company’s description of employee work/life balance seems reasonable based on this data.
+
+
+
+
+
+
+
+## problem 2
+The company claims that the education field of 55% of their employees is in the life science, 20% is in marketing, 20% is in technical, and 5% is other. Is this claim reasonable in light of the sample data?
+
+
+##### Hypothesis
+
+- $H_0:$ The proportions of education fields are the following: 55% life science, 20% marketing, 20% technical, & 5% other.
+
+- $H_a:$ The proportions are not consistent with the company's claims.
+
+
+##### Visualization
+```{r}
+ggplot(attrition,
+       aes(x = EducationField,
+           fill = EducationField)) +
+  geom_bar(show.legend = FALSE) +
+  labs(title = "Distribution of Education Fields",
+       x = "Education Field",
+       y = "Count") +
+  scale_fill_brewer(palette = "Dark2") + 
+  theme_minimal()
+```
+
+
+##### Run Chi-Sqrd Test
+
+```{r}
+obs_edu <- table(attrition$EducationField)
+p_null_edu <- c(0.55, 0.20, 0.05, 0.20)
+chisq.test(obs_edu, p = p_null_edu)
+```
+
+
+##### Interpretations
+
+technical:
+
+- Since the p-value (0.00265) is much smaller than the standard significance level, reject the null hypothesis. There is strong statistical evidence that the observed distribution of education fields does not match the company’s claimed proportions.
+
+non-statistical:
+
+- The sample data show a pattern that’s too different from what the company described to be explained by chance alone. That means the company’s claim about employees’ education fields isn’t reasonable — the actual mix of education backgrounds in the sample doesn’t match what they said.

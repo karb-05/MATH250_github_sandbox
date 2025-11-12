@@ -1,0 +1,61 @@
+---
+title: "11.10"
+author: Karli Balzanto
+format: html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+```
+
+## ANOVA
+
+testing whether a quantitative variable and a categorical variable are independent.
+
+$H_0:\mu_1 = \mu_2 = ... = \mu_m$ 
+
+$H_a:\mu_1 \ne \mu_2$ for some $i \ne j$
+
+
+compare the variability of the observed group means within the variability within the groups. (compare variability of data within group to variability between groups)
+
+compute an F-statistic & get a p-value
+
+a low p-value represents evidence against $H_0$
+
+#### to do ANOVA:
+
+- state hypothesis
+- visualization (go-to is boxplot b/c 1 categorical & 1 quantitative)
+- run test (command is `aov()`)
+- state conclusion in ordinary human language
+- consider which groups are different
+
+
+#### ANOVA Assumptions:
+
+- observations are independent of one another
+- in each group, the quantitative variable is normally-distributed
+    - can be broken especially for large samples
+- variances in group are equal
+
+#### Info from Video: "Understanding ANOVA in 8 minutes"
+
+results that are given:
+
+- df: degree of freedom
+- SS
+- mean sq
+- F
+- p-value: probability of data like that found in sample occurring by change when null is true
+
+
+post-hoc test --> Turkey honest significant differences test
+
+- performs multiple t-tests between groups, limiting the total probability of a type 1 error by demanding smaller p-values in pairwise tests
+
+

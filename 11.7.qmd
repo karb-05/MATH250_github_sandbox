@@ -1,0 +1,73 @@
+---
+title: "11.7"
+author: Karli Balzanto
+format: html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+```
+
+## chi-squared goodness of fit testing
+
+the $\chi^2$ test is used for a single categorical variable. lets do an example using `diamonds`.
+
+suppose we have a sample size of 250 from this set. is it consistent witht eh claim that all diamond colors are equally probable?
+
+$H_0:$ all colors have equal proportions in the population
+
+$H_a:$ all colors *don't* have equal proportions in the population
+```{r}
+set.seed(0)
+diamonds_sample <- diamonds %>% 
+  slice_sample(n = 250)
+```
+
+next we get a visualization.
+```{r}
+ggplot(diamonds_sample,
+       aes(x = color)) +
+  geom_bar(fill = 'skyblue') +
+  labs(title = "",
+       x = "color",
+       y = "count") +
+  theme_minimal()
+```
+
+looks like the proportions aren't the same, but it's still possible that this is just due to chance in the sampling.
+
+first we get the counts for the different factor levels.
+```{r}
+#different from yesterday b/c was given counts. today have to get the observed counts
+t<- table(diamonds_sample$color)
+t
+
+#since 7 diff categories & want all to be the same, probability is 1/7 for all categories
+p_null <- rep(1/7, times = 7)
+p_null #null hypothesis values/prob
+```
+
+now we run the test.
+```{r}
+chisq.test(t, p=p_null)
+```
+
+the p-value measures how consistent out data is with the null. lower p-value represents stronger evidence against the null.
+
+a p-value of $5.9 \times 10^{-5}$ represents very strong evidence against the null. we conclude the colors *aren't* equally represented in the population.
+
+
+
+
+
+
+
+
+
+
+
+
