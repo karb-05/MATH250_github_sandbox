@@ -1,0 +1,36 @@
+---
+title: "11.19"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+
+## video notes
+
+
+#### outlier, leverage, & influence
+
+Outlier: y-value that's far from general trend of data; can be measured using studentized residuals
+
+Leverage: x-value or explanatory value have greater potential to affect fit of the model; can be measured using hat values
+
+Influence: observation that substantially changes fit of model; can be measured using Cook's distance
+
+
+#### R2
+
+R2: measure of spread of observation about regression line
+
+- Between 0 & 1 for linear model; closer to 0 bigger spread while closer to 1 means closer to regression line
+- R2 = variance of fitted y-values / variance of observed y-values
+- R2 = 1 - (variance of residual / variance of observed y-values)
+- Misinterpreted b/c measures proportion of variability of y that can be explained by variability in x
+  - If R2value is low, have to look at noise to see if too much and that's why the value is low b/c it could have a good regression line fit w/ low R2
+  - Coefficient of determination measures variability abt regression line, not directly tells if model is useful or reasonable
+		
+
+
+
+
+
+

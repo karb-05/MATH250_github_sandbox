@@ -1,0 +1,86 @@
+---
+title: "12.1"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(broom)
+```
+
+
+## Parallel - Slope Model: penguins
+
+```{r}
+#parallel slopes
+model_par <- lm(`Culmen Length (mm)` ~`Culmen Depth (mm)` + Species,
+            data = penguins_raw)
+summary(model_par)
+
+full_penguins_aug <- augment(model_par)
+
+ggplot(full_penguins_aug,
+       aes(x = `Culmen Depth (mm)`,
+           y = `Culmen Length (mm)`,
+           color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE) +
+  scale_color_brewer(palette = "Dark2")
+```
+
+from the summary of `model_par`:
+
+- $billlength = 13.2 + (1.4 \times billdep) + (9.9 \times ischinstrap?) + (13.4 \times isgentoo?)$
+  - `ischinstrap`: is 1 when penguin is a chinstrap & 0 if it's not
+  - `isgentoo`: is 1 when penguin is a gentoo & 0 if it's not
+  - slope is assumed to be the same for all 3 species, but intercept could be different. this represents a vertical shift.
+
+
+never set a hypothesis. **can't** claim statistical significance here; however, p-values are often used after the fact to draw conclusions about variables in the model/
+
+what if we actually wanted an inference? what hypothesis do those p-values test? lest's consider `isgentoo`
+
+$H_0$: knowing if a penguin is a Gentoo provides a better fit than not knowing **when bill depth and `ischinstrap` is already known**
+
+final warning: a p-value measures the likelihood of a type-1 error (false positive) when null is true. if you're looking at multiple p-values, those probabilities compound.
+
+
+
+```{r}
+library(modeldata)
+glimpse(crickets)
+ggplot(crickets, aes(x = temp,
+                     y = rate,
+                     color = species)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE) +
+  scale_color_brewer(palette = "Dark2")
+```
+
+```{r}
+model_sm <- lm(rate ~ temp + species,
+               data = crickets)
+summary(model_sm)
+```
+
+
+from the plot, it seems plausible that the slopes could be different. what does a model look like that takes this into account?
+
+$rate = \beta_0 + (\beta_1 \times temp) + (\beta_2 \times speciesNiveus) + (\beta_3 \times speciesNiveus \times temp) $
+
+```{r}
+model_lg <- lm(rate ~ temp * species,
+               data = crickets)
+summary(model_lg)
+```
+
+
+
+
+

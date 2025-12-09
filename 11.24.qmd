@@ -1,0 +1,102 @@
+---
+title: "11.24"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+```
+
+## Regression (categorical explainer)
+
+regression with a categorical explanatory variable
+
+- we'll assume equal slopes (for now)
+- want roughly:
+  - chinstrap: $y = mx_1 + b_{chin}$
+  - gentoo: $y = mx_1 + b_{gen}$
+  - $y$ is bill/culmen length & $x_1$ is depth
+- more specifically, y = {$mx_1 + b_{chin}$ if chinstrap; $mx_1 + b_{chin} + b_{difference}$ if gentoo}
+  - b(difference) + b(chin) = b(gen)
+  
+```{r}
+penguins_sm <- penguins_raw %>% 
+  filter(Species != "Adelie Penguin (Pygoscelis adeliae)")
+
+ggplot(penguins_sm,
+       aes(x = `Culmen Depth (mm)`,
+           y = `Culmen Length (mm)`,
+           color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE) +
+  scale_color_brewer(palette = "Dark2")
+```
+
+let $x_2$ = {0 if chinstrap; 1 if gentoo}
+
+$y = b_{chin} + mx_1 + b_{diff} * x_2$
+
+want to find coefficient using R
+
+$length = \beta_0 + \beta_1 (depth) + \beta_2 (isgentoo?)$
+$length = 12.38 + 1.98 (depth) + 5.48 (isgentoo?)$
+```{r}
+model <- lm(`Culmen Length (mm)` ~`Culmen Depth (mm)` + Species,
+            data = penguins_sm)
+model # just gives coefficients
+summary(model)
+```
+
+we can get a residual plot from this model
+```{r}
+library(broom)
+
+penguins_aug <- augment(model)
+glimpse(penguins_aug)
+
+ggplot(penguins_aug,
+       aes(x = .fitted,
+           y = .resid)) +
+  geom_point()
+
+```
+looks great!
+
+
+## Categorical Explainers (multiple levels)
+
+what if we also want to consider `Adelies`?
+
+using full `penguins` data set:
+
+- $billlength = \beta_0 + \beta_1(billdep) + \beta_2(ischinstrap?) + \beta_3(isgentoo?)$
+  - $\beta_0$: for 1st factor level (`Adelies`)
+  - $\beta_1$: slope
+
+$billlength = 13.22 + 1.39(billdep) + 9.94(ischinstrap?) + 13.40(isgentoo?)$
+```{r}
+model_full <- lm(`Culmen Length (mm)` ~`Culmen Depth (mm)` + Species,
+            data = penguins_raw)
+model_full
+```
+
+conclude with plot
+```{r}
+full_penguins_aug <- augment(model_full)
+
+ggplot(full_penguins_aug,
+       aes(x = `Culmen Depth (mm)`,
+           y = `Culmen Length (mm)`,
+           color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE) +
+  scale_color_brewer(palette = "Dark2")
+```
+
+should consider whether `Adelies` need a different slope. for that matter, should we allow different slopes for the other species?

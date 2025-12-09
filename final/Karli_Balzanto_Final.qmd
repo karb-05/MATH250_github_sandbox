@@ -1,0 +1,263 @@
+---
+title: "Karli_Balzanto_Final"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(gt)
+college <- read.csv("college.csv")
+pressure <- read.csv("pressure.csv")
+billboard <- read.csv("billboard.csv")
+```
+
+# Final Exam
+Followed all best practices from the entire semester, showcasing skills gained through this class.
+
+### problem 1
+
+*hypotheses*
+
+- $H_0:$ Mean systolic blood pressure is the same across lifestyle groups (urban, rural, suburban).
+- $H_a:$ At least one lifestyle group has a different mean systolic pressure.
+
+```{r}
+#| label: question 1
+#| fig-alt: xx
+#| warning: false
+
+model1 <- aov(systolic ~ lifestyle, data = pressure)
+summary(model1)
+```
+
+*conclusion*
+
+- The ANOVA test produced a very small p-value (p < 0.0001). At $\alpha = 0.5$ we reject $H_0$.
+- Therefore, there is strong statistical evidence that systolic blood pressure is associated with lifestyle in this Ohio sample.
+
+
+
+
+### problem 2
+
+*hypotheses*
+
+- $H_0: \mu = 128$ (Ohio mean systolic equals U.S. mean)
+- $H_a: \mu \ne 128$
+
+```{r}
+#| label: question 2
+#| fig-alt: xx
+#| warning: false
+
+t.test(pressure$systolic, mu = 128)
+```
+
+*conclusion*
+
+- The test produced a very small p-value (p < 0.001). At $\alpha = 0.5$, we reject $H_0$.
+- Therefore, the data provides strong evidence that Ohioans differ from the national average systolic blood pressure of 128.
+
+
+
+
+### problem 3
+
+*hypotheses*
+
+- $H_0: \beta_1 = 0$ (acceptance rate does not explain graduation rate)
+- $H_1: \beta_1 \ne 0$
+
+```{r}
+#| label: question 3
+#| fig-alt: xx
+#| warning: false
+
+college$Accept <- as.character(college$Accept)
+
+for (i in 1:length(college$Accept)) {
+  value <- college$Accept[i]
+  percent_number <- substring(value, 1, nchar(value) - 1)
+  college$Accept[i] <- as.numeric(percent_number) / 100}
+
+college$Accept <- as.numeric(college$Accept)
+college$Grad.Rate <- as.numeric(college$Grad.Rate)
+college$Grad.Rate <- as.numeric(college$Grad.Rate)
+
+model2 <- lm(Grad.Rate ~ Accept, data = college)
+summary(model2)
+```
+
+```{r}
+#| label: question 3 pt 2
+#| fig-alt: xx
+#| warning: false
+
+ggplot(college,
+       aes(x = Accept,
+           y = Grad.Rate)) +
+  geom_point(color = "lightblue") +
+  geom_smooth(method = "lm", color = "black") +
+  labs(title = "Graduation Rate vs Acceptance Rate",
+       x = "Acceptance Rate (fraction)",
+       y = "Graduation Rate") +
+  theme_minimal()
+```
+
+
+*conclusion*
+
+- The regression output shows that the slop is statistically significant with a very small p-value. At $\alpha = 0.5$, we reject $H_0$.
+- Therefore, there's strong evidence that acceptance rate is a meaningful predictor of graduation rate.
+
+
+
+
+### problem 4
+
+*equation*
+
+- $GradRate = \beta_0 + [\beta_1 * Accept] + [\beta_2 * Public]$
+  - where 1 for public & 0 for private
+
+```{r}
+#| label: question 4
+#| fig-alt: xx
+#| warning: false
+
+college$Public <- NA
+college$Public[college$Private == "Yes"] <- 0 #private
+college$Public[college$Private == "No"]  <- 1 #public
+
+model3 <- lm(Grad.Rate ~ Accept + Public, data = college)
+summary(model3)
+```
+
+
+*interpretation*
+
+- $\beta_0$: Predicted graduation rate for a private college with 0 acceptance rate.
+- $\beta_1$: Change in graduation rate for every unit increase in acceptance rate.
+- $\beta_2$: Difference between public and private colleges, holding acceptance rate constant.(public - private)
+
+```{r}
+#| label: question 4 pt 2
+#| fig-alt: xx
+#| warning: false
+
+ggplot(college,
+       aes(x = Accept,
+           y = Grad.Rate,
+           color = factor(Public))) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  scale_color_brewer(palette = "Dark2") +
+  labs(color = "Public (1) / Private (0)",
+       title = "Graduation Rate") +
+  theme_minimal()
+```
+
+*predicted graduation rate*
+
+
+```{r}
+#| label: question 4 pt 3
+#| fig-alt: xx
+#| warning: false
+
+b0 <- coef(model3)[1]
+b1 <- coef(model3)[2]
+b2 <- coef(model3)[3]
+
+#accept val = 0.85
+#public val = 0
+predicted_value <- b0 + b1 * 0.85 + b2 * 0
+predicted_value
+```
+
+
+### problem 5
+
+*write-up*
+
+- I dug into the Billboard #1 songs data set to see how songs reaching the top varied across years and decades. The data shows that most #1 hits only stay at the top for a few weeks, but a few songs break out and stay way longer — those tracks stand out in almost any decade. When I grouped the songs by decade, I noticed some decades have more entries than others; that likely comes from how the charts were tracked and how music was released over time. I picked the song with the longest run at #1 in the data set and highlighted it on the scatter so you can see how unusual it is compared to most #1's. Overall, the data set tells a story of consistent short-term hits with rare long-term blockbusters.
+
+*visuals*
+```{r}
+#| label: question 5 visual 1
+#| fig-alt: xx
+#| warning: false
+
+#1: Number of #1 Songs per Decade
+billboard$date <- as.character(billboard$date)
+billboard$year <- rep(NA, length(billboard$date))
+for (i in 1:length(billboard$date)) {
+  billboard$year[i] <- as.numeric(substring(billboard$date[i], 1, 4))}
+
+billboard$decade <- (billboard$year %/% 10) * 10
+
+ggplot(billboard,
+       aes(x = decade,
+           fill = factor(decade))) +
+  geom_bar(show.legend = FALSE) +
+  labs(title = "Number of Billboard #1 Songs per Decade",
+       x = "Decade",
+       y = "Count") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+
+
+```{r}
+#| label: question 5 visual 2
+#| fig-alt: xx
+#| warning: false
+
+#2: Weeks at #1 Over Time with Highlighted Song
+highlight <- billboard[order(-billboard$weeks_at_number_one), ][1, ]
+
+ggplot(billboard,
+       aes(x = year,
+           y = weeks_at_number_one)) +
+  geom_point(alpha = 0.5) +
+  geom_point(data = highlight,
+             color = "red",
+             size = 3) +
+  annotate("text",
+           x = highlight$year + 1,
+           y = highlight$weeks_at_number_one + 1,
+           label = highlight$song,
+           color = "red") +
+  labs(title = "Weeks at #1 Over Time",
+       x = "Year",
+       y = "Weeks at #1") +
+  theme_minimal()
+```
+
+```{r}
+#| label: question 5 visual 3
+#| fig-alt: xx
+#| warning: false
+
+#3: Top 10 Longest #1 Songs
+top10 <- billboard %>%
+  arrange(desc(weeks_at_number_one)) %>%
+  select(song, artist, weeks_at_number_one) %>%
+  slice(1:10) %>%
+  gt()
+top10
+```
+
+### problem 6
+
+*GitHub*
+put problem 5 into GitHub
+
+

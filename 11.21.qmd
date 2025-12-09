@@ -1,0 +1,95 @@
+---
+title: "11.21"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(readxl)
+curved <- read.csv("curved.csv")
+parenting <- read_excel("parenting.xlsx")
+```
+
+## linear regession
+
+the `curved` data set isn't a great candidate for linear regression, but let's do it anyways
+```{r}
+ggplot(curved,
+       aes(x = x,
+           y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE)
+```
+
+lets get actual equation, p-value, etc.
+```{r}
+model <- lm(y ~ x, 
+            data = curved)
+summary(model)
+```
+
+in order to check the assumptions of our model, we make a residual plot. in ofder to do this well, we'll use the function `broom::augment`
+```{r}
+library(broom)
+curved_aug <- augment(model)
+glimpse(curved_aug)
+```
+
+residual plot shows residual versus fitted values.
+
+- residual is difference between observed and fitted values
+```{r}
+ggplot(curved_aug,
+       aes(x = .fitted,
+           y = .resid)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE)
+```
+
+we can clearly see a pattern. inf linear regression is appropriate, this should just be a pattern-less cloud.
+
+
+
+
+## multiple regression
+
+let's return to `parenting` data set.
+```{r}
+glimpse(parenting)
+```
+
+question: do we get a better model if we consider both `dan.sleep` & `baby.sleep` while explaining `dan.grump`?
+
+let's just do it & worry about whether it's a good idea later.
+```{r}
+model_large <- lm(dan.grump ~ baby.sleep + dan.sleep,
+                  data = parenting)
+
+```
+
+the form of model: $y = \beta_0 + \beta_1 x_1 + \beta_2 x_2$
+
+if `baby.sleep` increases by 1, then `dan.grump` increases by $\beta_1$. R will fill in the betas.
+```{r}
+summary(model_large)
+```
+
+
+the model here is: $y = 125.97 + 0.01 x_1 -8.95 x_2$
+
+each of these coefficients are optimized for a linear model that **includes** the other. each of their p-values tests whether the coefficient value could plausibly be zero in a model including the other.
+
+p-value of `baby.sleep` shows it's not relevant but earlier we predicted the opposite.
+
+dan's grump is explained by dan's sleep, not babies sleep.
+
+looks like there's a positive relationship between `dan.grump` and `baby.sleep` (more sleep, more grump)
+
+
+

@@ -44,6 +44,7 @@ ggplot(attrition,
 ```{r}
 obs_wlb <- table(attrition$WorkLifeBalance)
 p_null_wlb <- c(0.05, 0.10, 0.65, 0.20)
+obs_wlb
 chisq.test(obs_wlb, p = p_null_wlb)
 ```
 

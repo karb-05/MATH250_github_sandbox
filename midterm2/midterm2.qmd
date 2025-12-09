@@ -1,0 +1,264 @@
+---
+title: "midterm2"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(readr)
+summerschool <- read_csv("summer_school.csv")
+cupid <- read_csv("cupid.csv")
+```
+
+- open resource exam
+- free to work with others but **NOT** ask for answers using outside sources (including people and programs)
+- use tools discussed in class
+- follow all best practices established in class
+- has to be functional and have clarity & style
+
+
+
+
+## problem 1
+
+Tidy the data & recreate the given plot as closely as possible.
+```{r}
+#| label: problem 1
+#| fig-alt: A bar chart showing how many students got each letter grade in two summer-school terms. Each grade has its own colored bar, and the x-axis lists the grades while the y-axis shows how many students got each one. The chart is titled ‘Making the grade’ and uses colors from the Dark2 palette. Data comes from grades.xlsx.
+
+terms <- summerschool %>% 
+  pivot_longer(cols = c(term1, term2),
+               names_to = "term",
+               values_to = "grade") %>%
+  drop_na(grade)
+
+ggplot(terms, aes(x = grade,
+                         fill = grade)) +
+  geom_bar(show.legend = FALSE) +
+  labs(title = "Making the grade",
+       x = "Letter Grade",
+       y = "Frequency",
+       caption = "Source: grades.xlsx") + 
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+
+
+
+
+## problem 2
+
+high school claims avg GPA = 3.1. Is the claim reasonable?
+
+
+$H_0: \mu = 3.1$ (true mean GPA of students taking summer school is 3.1)
+
+$H_a: \mu \ne 3.1$ (true mean GPA of students taking summer school is not 3.1)
+```{r}
+#| label: problem 2a
+#| fig-alt: A histogram showing how summer-school students’ GPAs are distributed. Each bar shows how many students fall into each GPA range of 0.1. There’s a vertical blue line at GPA 3.1 to highlight it. The x-axis is GPA, the y-axis is the number of students, and the chart is called ‘GPA Summer School Student Distribution.’
+
+
+ggplot(summerschool, aes(x = gpa,
+                         fill = gpa)) +
+  geom_histogram(binwidth = 0.1,
+                 fill = "darkgreen",
+                 color = "black") +
+  geom_vline(xintercept = 3.1,
+             color = "blue",
+             linewidth = 1) +
+  labs(title = "GPA Summer School Student Distribution",
+       x = "GPA",
+       y = "Count") +
+  theme_minimal()
+```
+
+```{r}
+#| label: problem 2b
+#| fig-alt: A one-sample t-test comparing the average GPA of summer-school students to 3.1. The output gives the test statistic, degrees of freedom, p-value, confidence interval, and the sample mean. Basically, it’s checking if the students’ average GPA is different from 3.1.
+
+t.test(summerschool$gpa, mu = 3.1)
+```
+
+**Plain English Explanation:** The students have an average GPA of 3.025 which is very close to the school's claimed avarage of 3.1. The difference is small and likely just a normal variation so we don't have convincing envidence that the school's claim is inaccurate.
+
+**Statistical Explanation:** The sample of 40 students has a mean GPA of 3.025 (rounded 3.0). The t-test showed a p-value of 0.365, because of that, we fail to reject the null hypothesis. There is not enough statistical evidence to conclude the true mean GPA differs from 3.1.
+
+
+
+
+## problem 3
+
+Recreate given table as closely as possible.
+```{r}
+#| label: problem 3
+#| fig-alt: A table showing how many students were in each summer-school term. Each row lists the term number, the total count of students, and a DF Rate. Term 1 has a lower rate and Term 2 a higher one. The table has clear headers and nicely formatted numbers.
+
+library(gt)
+
+gt_table <- summerschool %>%
+  pivot_longer(cols = c(term1, term2),
+               names_to = "term_type",
+               values_to = "Grade") %>% 
+  drop_na(Grade) %>% 
+  mutate(Term = str_remove(term_type, "term"),
+         DF = if_else(Grade %in% c("D", "F"), 1,0)) %>% 
+  group_by(Term) %>%
+  summarise(Number = n(),
+            DF_Rate = mean(DF)) %>% 
+  gt() %>% 
+  cols_label(Term = "Term",
+             Number = "Number",
+             DF_Rate = "DF Rate") %>%
+  fmt_number(columns = c(DF_Rate),
+             decimals = 2)
+gt_table
+```
+
+
+
+
+## problem 4
+
+Does it seem the body type & drug use are related? Consider only the five most common body types & only people that answered these questions.
+
+Generate a plot and a table, both useful and attractive, then give a few sentences explaining findings and reasoning. (not statistical inference)
+```{r}
+#| label: problem 4
+#| fig-alt: A table and bar chart showing drug use for the five most common body types in the Cupid dataset. The table lists each body type, each drug-use category, and how many people fall into each combo. The bar chart shows the same info visually, with side-by-side bars for each drug category and different colors from the Dark2 palette. The chart is called ‘Drug Use by Body Type.’
+
+cupid_sm <- cupid %>%
+  filter(!is.na(body_type),
+         !is.na(drugs)) %>% # no NA's / only people who answered
+  filter(body_type %in% (count(.,
+                               body_type,
+                               sort = TRUE) %>%
+                           slice_head(n = 5) %>%
+                           .$body_type)) # 5 most common body types
+
+body_drug_table <- cupid_sm %>% 
+  count(body_type,
+        drugs) %>% 
+  gt() %>% 
+  cols_label(body_type = "Body Type",
+             drugs = "Drug Use",
+             n = "Count")
+body_drug_table
+
+ggplot(cupid_sm,
+       aes(x = body_type,
+           fill = drugs)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Drug Use by Body Type",
+       x = "Body Type",
+       y = "Count",
+       fill = "Drug Use") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+From the table and plot, I found the following information:
+
+- The bar plot makes it easier to compare the categories while the table provides exact counts for the bar plot.
+- Some body types have higher `never` counts of drug use than others, indicating there's a difference in drug usage by body type.
+- The athletic and fit body types are very similar in counts for each `drug use` category.
+- (if this is subjective/not verified by a test) The data shows that almost all the participants didn't admit to any drug usage. This would make a lot sense of no admittance to any if there was no protection from the law or ability to be anonymous.
+- Behavioral patterns differ from group sizes. This can be show by changing the parameters in `geom_bar()`.
+  - When the bar chart has nothing in the parenthesis, the total number of individuals in each body type goes from curvy --> thin --> athletic --> fit --> average. This shows that average and fit body types are the most common, while curvy and this are the least common body types in the data set.
+  - When the bar chart has `position = "fill"` (show the proportions of each drug use category), the `never` drug use category increases from thin --> curvy --> fit --> average --> athletic. This means that athletic individuals have the highest rate of never using drugs even if the total counts differ.
+  - Both these findings explain that the sample is concentrated to a certain body type but the drug use patterns vary across the body types independently of how many individuals are in each group meaning that body type aline doesn't determine drug use behavior, and differences aren't just due to group size.
+
+
+
+
+## problem 5
+
+Is the cupid data set consistent with the Gallup findings (U.S adult identification: 3.4% gay, 5.2% bisexual, & 91.4% straight)?
+
+$H_0:$ The proportions of gay, bisexual, and straight individuals match Gallup's reported percentages (3.4%, 5.2%, and 91.4% respectively).
+
+$H_a:$ The proportions of gay, bisexual, and straight individuals do not match Gallup's reported percentages.
+```{r}
+#| label: problem 5a
+#| fig-alt: A bar chart showing the proportion of each sexual orientation in the Cupid dataset. Each bar is filled with a different color from the Dark2 palette. The x-axis has the orientations, the y-axis has their proportions, and the chart is called ‘Sexual Orientation Proportions.’
+
+#visual
+orientation_sum <- cupid %>% 
+  filter(!is.na(orientation)) %>%
+  count(orientation) %>%
+  mutate(proportions = n / sum(n))
+
+ggplot(orientation_sum,
+       aes(x = orientation,
+           y = proportions,
+           fill = orientation)) +
+  geom_col(show.legend = FALSE) +
+  labs(title = "Sexual Orientation Proportions",
+       x = "Orientation",
+       y = "Proportion") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+```{r}
+#| label: problem 5b
+#| fig-alt: A chi-squared test comparing the number of bisexual, gay, and straight people in the Cupid dataset to expected percentages (5.2% bi, 3.4% gay, 91.4% straight). The output shows the chi-squared statistic, degrees of freedom, and p-value to see if the data matches those expected proportions.
+
+Obs <- cupid %>% 
+  filter(!is.na(orientation)) %>% #no NAs
+  count(orientation) %>% #total for each
+  arrange(orientation) %>% #order = bi, gay, straight
+  .$n #extract count
+
+p_null <- c(0.052, 0.034, 0.914) #bi, gay, straight
+
+chisq.test(Obs, p=p_null)
+```
+**Plain English Explanation:** The proportions of sexual orientations in the Cupid data set are far from the Gallup percentages for U.S. adults. The differences are much larger than what would normally happen just from random chance. That means we have strong evidence that the Cupid sample does not match the national distribution of straight, gay, and bisexual adults. In practical terms, the Cupid users in this data set simply represent a different mix of people than what Gallup sees in the general population.
+
+**Statistical Explanation:** The chi-squared test compares the Cupid sample proportions to the Gallup population proportions (91.4% straight, 3.4% gay, 5.2% bisexual). After removing missing values and calculating expected counts, the test produced a very large chi-squared value and a p-value near zero. Because the p-value is so small, we reject the null hypothesis that the Cupid sample follows the Gallup proportions. This provides strong statistical evidence that the observed orientation distribution is not consistent with the Gallup distribution. 
+
+
+
+
+## problem 6
+
+Get an attractive plot showing the six most common responses. Use `separate`, `case_when`, and core tools to obtain accurate counts of various individual ethnicities represented in this data set.
+```{r}
+#| label: problem 6
+#| fig-alt: A table and bar chart showing the six most common ethnicities in the Cupid dataset. The data splits entries where people listed multiple ethnicities and cleans up the names. The table counts how many people are in each group, and the chart shows these counts with colored bars using the Dark2 palette. The chart is called ‘Top 6 Most Common Ethnicities.’
+
+eth_clean <- cupid %>%
+  filter(!is.na(ethnicity)) %>% #remove NAs
+  separate_longer_delim(ethnicity, delim = ",") %>% #had to look up what to do if gave multiple/dilema situation
+  mutate(ethnicity = str_trim(ethnicity),
+         ethnicity = case_when(ethnicity %in% c("asian") ~ "Asian",
+                               ethnicity %in% c("white") ~ "White",
+                               ethnicity %in% c("black") ~ "Black",
+                               ethnicity %in% c("hispanic / latin", "hispanic/latin") ~ "Hispanic/Latin",
+                               ethnicity %in% c("middle eastern") ~ "Middle Eastern",
+                               ethnicity %in% c("native american") ~ "Native American",
+                               ethnicity %in% c("pacific islander") ~ "Pacific Islander",
+                               ethnicity %in% c("other") ~ "Other",
+                               TRUE ~ "Other"))
+
+eth_counts <- eth_clean %>%
+  count(ethnicity, sort = TRUE) %>%
+  slice_max(n, n = 6)
+
+ggplot(eth_counts,
+       aes(x = reorder(ethnicity, n),
+           y = n,
+           fill = ethnicity)) +
+  geom_col(show.legend = FALSE) +
+  labs(title = "Top 6 Most Common Ethnicities",
+       x = "Ethnicity",
+       y = "Count") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme_minimal()
+```
+
+

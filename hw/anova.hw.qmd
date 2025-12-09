@@ -1,0 +1,134 @@
+---
+title: "anova.hw"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(broom)
+data(iris)
+```
+
+## problem 1
+Does this sample data provide evidence that sepal width is dependent on species in the population from which this sample is drawn? Test at significance level $\alpha = .05$.
+
+$H_0:$ The population mean sepal width is the same for all species.
+
+$H_a:$ At least one species has a different population mean sepal width.
+
+The ANOVA test produces a very small p-value (≪ 0.05); therefore, we reject $H_0$. There is strong statistical evidence that mean sepal width depends on species in the population of irises.
+
+```{r}
+mod1 <- aov(Sepal.Width ~ Species, data = iris)
+
+summary(mod1) 
+
+#basic plot for my understanding
+ggplot(iris,
+       aes(x = Species,
+           y = Sepal.Width)) +
+  geom_boxplot(fill = "lightpink") +
+  labs(title = "Sepal Width by Species")
+
+```
+
+
+## problem 2
+Follow up on problem 1 by comparing mean sepal widths pairwise across different species using the post-hoc test covered in class.
+
+Conclusion:
+
+- Setosa vs Versicolor: significantly different
+- Setosa vs Virginica: significantly different
+- Versicolor vs Virginica: not significantly different
+- Thus, setosa has distinctly wider sepals than both other species, while versicolor and virginica do not significantly differ from each other.
+```{r}
+tukey_res <- TukeyHSD(mod1)
+tukey_res
+```
+
+
+## problem 3
+Is sepal width a statistically significant explainer of petal width? Follow all best-practices from class. (Remark: Your model should show a negative association between these variables, which would seem counter-intuitive.)
+
+$PetalWidth= \beta_0 + \beta_1(SepalWidth)$
+
+$H_0: \beta_1 = 0$ (sepal width is not associated with petal width)
+
+$H_a: \beta_1 \ne 0$ (sepal width is associated with petal width)
+
+The slope is negative and statistically significant (p < 0.001); therefore, we reject $H_0$ and conclude that sepal width is a significant predictor of petal width.
+
+```{r}
+mod2 <- lm(Petal.Width ~ Sepal.Width, data = iris)
+summary(mod2)
+
+ggplot(iris,
+       aes(x = Sepal.Width,
+           y = Petal.Width)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              color = "lightblue") +
+  labs(title = "Petal Width vs. Sepal Width",
+       x = "Sepal Width",
+       y = "Petal Width")
+```
+
+
+## problem 4
+Construct a parallel-slopes model explaining petal width with sepal width and species. Write the equation of the model, making sure the meanings of your variables are clear. Also include a plot.
+
+$PetalWidth= \beta_0 + \beta_1(SepalWidth) + \beta_2(Versicolor) + \beta_3(Virginica)$
+
+Within each species, sepal width has only a weak relationship with petal width. Species mainly shifts the intercept upward or downward.
+
+```{r}
+mod3 <- lm(Petal.Width ~ Sepal.Width + Species, data = iris)
+summary(mod3)
+
+ggplot(iris,
+       aes(x = Sepal.Width,
+           y = Petal.Width,
+           color = Species)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE,
+              color = 'grey') +
+  labs(title = "Parallel-Slopes Model for Petal Width",
+       x = "Sepal Width",
+       y = "Petal Width",
+       color = "Species")
+```
+
+
+## problem 5
+Construct an attractive residual plot for the model in the last problem. Comment on any patterns that you observe.
+
+the plot shows:
+
+- No strong curvature → linearity is reasonable
+- Roughly equal spread across fitted values → constant variance is reasonable
+- Residuals centered around zero → model form is adequate
+- Mild species clustering is expected but not concerning
+
+```{r}
+resid_df <- augment(mod3)
+
+ggplot(resid_df,
+       aes(x = .fitted,
+           y = .std.resid,
+           color = iris$Species)) +
+  geom_point(alpha = 0.7) +
+  geom_hline(yintercept = 0,
+             linetype = "dashed") +
+  labs(title = "Residual Plot for Parallel-Slopes Model",
+       x = "Fitted Values",
+       y = "Standardized Residuals",
+       color = "Species")
+```
+

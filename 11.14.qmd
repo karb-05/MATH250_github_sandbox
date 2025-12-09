@@ -1,0 +1,91 @@
+---
+title: "11.14"
+author: "Karli Balzanto"
+format: html
+embed-resources: true
+---
+
+```{r}
+#| label: setup
+#| message: false
+
+library(tidyverse)
+library(readxl)
+```
+
+## chisqrd hw
+```{r}
+#Problem 1
+
+library(tidyverse)
+library(readr)
+attrition <- read_csv("attrition_small.csv")
+
+attrition1 <- attrition %>% 
+  summarise(WorkLifePercent = n() / 250,
+            .by = WorkLifeBalance)
+
+ggplot(attrition1,
+       aes(x = WorkLifeBalance,
+           y = WorkLifePercent)) +
+  geom_col(show.legend = FALSE) +
+  labs(title = "Distribution of Work/Life Balance Ratings",
+       x = "Work/Life Balance",
+       y = "Count") + 
+  theme_minimal()
+
+obs_wlb <- table(attrition$WorkLifeBalance)
+p_null_wlb <- c(0.05, 0.10, 0.65, 0.20)
+chisq.test(obs_wlb, p = p_null_wlb)
+```
+
+## Linear Regression
+looking at the relationship between 2 quantitative variables. for instance, is Danielle's grumpiness level related to the amount of sleep the baby gets?
+
+regression considers a possible *linear* relationship. 
+
+
+$H_0:$ there's **no** linear relationship between the variables. the slope of the line of best-fit is zero.
+
+$H_a:$ there's a linear relationship between the variables. the slope of the line of best-fit is non-zero.
+
+visualization is essential when doing regression since have to check if relationship appears linear.
+
+visualize- x is explanation & y is independent
+```{r}
+parenting <- read_excel("parenting.xlsx")
+
+  #bad model b/c over fitting
+  # ggplot(parenting,
+        # aes(x = baby.sleep,
+            # y = dan.grump)) +
+    # geom_point() +
+    # geom_smooth()
+
+ggplot(parenting,
+       aes(x = baby.sleep,
+           y = dan.grump)) +
+  geom_point() +
+  geom_smooth(method = "lm",
+              se = FALSE) #to stop the over fitting & the grey bkgrd on line
+```
+
+run test with `lm`
+```{r}
+grumpmodel <- lm(dan.grump ~ baby.sleep,
+   data = parenting)
+summary(grumpmodel)
+```
+model here is `dan.grump = 85.782 - 2.742 * baby.sleep`
+
+p-value for coefficient is `baby.sleep` Pr(>|t|).
+
+p-value of slope = $8.45 \times 10^{-10}$, indicating strong evidence against the null.
+
+we conclude that in the larger population (all days after the baby sleeps), Danielle's grumpiness levels is impacted by the amount of sleep the baby got.
+
+
+
+
+
+
