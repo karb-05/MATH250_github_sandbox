@@ -1,6 +1,6 @@
 #Google AI Studio API Key
 
-Sys.setenv(GEMENI_API_KEY = "AIzaSyBj8brT3SJIpw-WJGrs06LMY4CNXoM4ZDs")
+Sys.setenv(GEMENI_API_KEY = "")
 
 install.packages("ellmer") #just install once
 library(ellmer) #every time
